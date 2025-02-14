@@ -66,9 +66,19 @@ class PokemonDatasourceTests: XCTestCase {
         XCTAssertEqual(data, [PokemonModel(name: "Bulbasaur")])
     }
     
-    func testRequestCalledGetPokemonsSuccessResponseWithEmptyData() async throws {}
-        
-
+    func testRequestCalledGetPokemonsSuccessResponseWithEmptyData() async throws {
+        let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
+        clientHttp.responseError = nil
+        clientHttp.responseData = """
+        {
+            "results": [
+               
+            ]
+        }
+        """.data(using: .utf8)
+        let data = try await datasource.getPokemons();
+        XCTAssertEqual(data, [])
+    }
 }
 
 class ClientHttpSpy: ClientHttp {

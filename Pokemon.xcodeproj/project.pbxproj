@@ -43,6 +43,7 @@
 				Data/Model/PokemonsResponseModel.swift,
 				Utils/Exceptions/SystemError.swift,
 				Utils/Http/ClientHttp.swift,
+				Utils/Http/ClientHttpImpl.swift,
 			);
 			target = 8DF886A62D5E6AB2001C85CD /* PokemonTests */;
 		};

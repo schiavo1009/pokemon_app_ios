@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "9DEF131A-01B6-4AA5-A08B-B70EAF3B9506",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "testTimeoutsEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:Pokemon.xcodeproj",
+        "identifier" : "8DF886A62D5E6AB2001C85CD",
+        "name" : "PokemonTests"
+      }
+    }
+  ],
+  "version" : 1
+}

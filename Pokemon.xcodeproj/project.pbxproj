@@ -41,6 +41,7 @@
 				Data/Datasource/PokemonDatasource.swift,
 				Data/Model/PokemonModel.swift,
 				Data/Model/PokemonsResponseModel.swift,
+				External/PokemonDatasourceImpl.swift,
 				Utils/Exceptions/SystemError.swift,
 				Utils/Http/ClientHttp.swift,
 				Utils/Http/ClientHttpImpl.swift,

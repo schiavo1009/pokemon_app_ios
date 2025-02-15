@@ -7,9 +7,9 @@ class ClientHttpImpl: ClientHttp {
         self.session = session
     }
     
-    func get(url: String) async throws -> Data {
+    func get(url: String, queryParams: [String: Any]? = nil) async throws -> Data {
         
-        guard let url = URL(string: url) else {
+        guard let url = createURLWithQueryParameters(url: url, queryParams: queryParams) else {
             throw ErrorClientHttp(statusCode: nil, message: "Invalid URL")
         }
         
@@ -25,6 +25,19 @@ class ClientHttpImpl: ClientHttp {
             throw ErrorClientHttp(statusCode: (response as? HTTPURLResponse)?.statusCode, message: "Error")
         }
         
+    }
+    
+    func createURLWithQueryParameters(url: String, queryParams: [String: Any]?) -> URL? {
+        if(url.isEmpty) {
+            return nil
+        }
+        guard var urlComponents = URLComponents(string: url) else {
+            return nil
+        }
+        if let queryParams = queryParams {
+            urlComponents.queryItems = queryParams.map { URLQueryItem(name: $0.key, value: "\($0.value)") }
+        }
+        return urlComponents.url
     }
     
 }

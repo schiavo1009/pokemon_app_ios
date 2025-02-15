@@ -8,5 +8,5 @@
 import Foundation
 
 protocol ClientHttp {
-    func get(url: String) async throws -> Data
+    func get(url: String, queryParams: [String: Any]?) async throws -> Data
 }

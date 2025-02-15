@@ -19,12 +19,12 @@ class ClientHttpImpl: ClientHttp {
             throw ErrorClientHttp(statusCode: nil, message: "Invalid Response")
         }
         
-        if(httpResponse.statusCode == 200){
+        if(httpResponse.statusCode >= 200 && httpResponse.statusCode < 300) {
             return data
         } else {
             throw ErrorClientHttp(statusCode: (response as? HTTPURLResponse)?.statusCode, message: "Error")
         }
- 
+        
     }
     
 }

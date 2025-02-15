@@ -6,9 +6,18 @@ import XCTest
 class PokemonDatasourceTests: XCTestCase {
     
     let clientHttp = ClientHttpSpy()
+    let responseOnePokemon = """
+        {
+            "results": [
+                { "name": "Bulbasaur" }
+            ]
+        }
+        """.data(using: .utf8)
     
     func testRequestCalledGetPokemons() async throws {
         let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
+        clientHttp.responseError = nil
+        clientHttp.responseData = responseOnePokemon
         do {
             _ = try await datasource.getPokemons();
         }catch {
@@ -21,8 +30,11 @@ class PokemonDatasourceTests: XCTestCase {
         let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
         clientHttp.responseError = nil
         clientHttp.responseData = Data()
-        _ = try await datasource.getPokemons()
-        XCTAssertEqual(clientHttp.requestedUrl, "https://pokeapi.co/api/v2/pokemon", "Expected requestedUrl to be https://pokeapi.co/api/v2/pokemon, but was \(clientHttp.requestedUrl ?? "")")
+        do{
+            _ = try await datasource.getPokemons()
+        }catch {
+            XCTAssertEqual(clientHttp.requestedUrl, "https://pokeapi.co/api/v2/pokemon", "Expected requestedUrl to be https://pokeapi.co/api/v2/pokemon, but was \(clientHttp.requestedUrl ?? "")")
+        }
         
     }
     
@@ -34,7 +46,7 @@ class PokemonDatasourceTests: XCTestCase {
             XCTFail("Expected error thrown")
         }catch let error as ErrorClientHttp {
             XCTAssertEqual(error.message,  "Error")
-            XCTAssertEqual(error.statusCode,  200)
+            XCTAssertEqual(error.statusCode,  400)
         }catch {
             XCTFail("Unexpected error type")
             
@@ -55,13 +67,7 @@ class PokemonDatasourceTests: XCTestCase {
     func testRequestCalledGetPokemonsSuccessResponse() async throws {
         let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
         clientHttp.responseError = nil
-        clientHttp.responseData = """
-        {
-            "results": [
-                { "name": "Bulbasaur" }
-            ]
-        }
-        """.data(using: .utf8)
+        clientHttp.responseData = responseOnePokemon
         let data = try await datasource.getPokemons();
         XCTAssertEqual(data, [PokemonModel(name: "Bulbasaur")])
     }

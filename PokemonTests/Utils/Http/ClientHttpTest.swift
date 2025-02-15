@@ -31,6 +31,7 @@ class ClientHttpTests : XCTestCase {
     
     func testGetRequestSuccess200() async throws {
         MockURLProtocol.mockData = Data()
+        MockURLProtocol.mockError = nil
         MockURLProtocol.mockResponse = HTTPURLResponse(url: URL(string: url)!, statusCode: 200, httpVersion: nil, headerFields: nil)
         do {
             let result = try await sut.get(url: url)
@@ -88,7 +89,7 @@ class MockURLProtocol: URLProtocol {
     }
     
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
-        return request 
+        return request
     }
     
     override func startLoading() {

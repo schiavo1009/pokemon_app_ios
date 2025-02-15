@@ -47,6 +47,7 @@
 				Domain/Usecases/FetchPokemonsUsecase.swift,
 				Domain/Usecases/FetchPokemonsUsecaseImpl.swift,
 				External/PokemonDatasourceImpl.swift,
+				Presentation/Presenter/PokemonsPresenter.swift,
 				Utils/Exceptions/SystemError.swift,
 				Utils/Http/ClientHttp.swift,
 				Utils/Http/ClientHttpImpl.swift,

@@ -7,9 +7,9 @@ class PokemonDatasourceImpl: PokemonDatasource {
         self.clientHttp = clientHttp
     }
     
-    func getPokemons(offset: Int? = nil, limit: Int? = nil) async throws -> [PokemonModel] {
+    func getPokemons(offset: Int, limit: Int) async throws -> [PokemonModel] {
         do{
-            let data =  try await clientHttp.get(url: urlPokemons, queryParams: ["offset": offset ?? 0, "limit": limit ?? 15])
+            let data =  try await clientHttp.get(url: urlPokemons, queryParams: ["offset": offset, "limit": limit])
             let decoder = JSONDecoder()
             let response = try decoder.decode(PokemonResponse.self, from: data)
             return response.results

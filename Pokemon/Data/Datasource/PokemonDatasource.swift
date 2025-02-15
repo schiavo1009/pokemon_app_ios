@@ -1,4 +1,4 @@
 protocol PokemonDatasource {
-    func getPokemons(offset: Int?, limit: Int?) async throws -> [PokemonModel]
+    func getPokemons(offset: Int, limit: Int) async throws -> [PokemonModel]
 }
     

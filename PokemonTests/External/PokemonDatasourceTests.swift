@@ -19,7 +19,7 @@ class PokemonDatasourceTests: XCTestCase {
         clientHttp.responseError = nil
         clientHttp.responseData = responseOnePokemon
         do {
-            _ = try await datasource.getPokemons(offset: nil, limit: nil);
+            _ = try await datasource.getPokemons(offset: 0, limit: 15);
         }catch {
             XCTFail("Unexpected error type")
         }
@@ -31,7 +31,7 @@ class PokemonDatasourceTests: XCTestCase {
         clientHttp.responseError = nil
         clientHttp.responseData = Data()
         do{
-            _ = try await datasource.getPokemons(offset: nil, limit: nil)
+            _ = try await datasource.getPokemons(offset: 0, limit: 15)
         }catch {
             XCTAssertEqual(clientHttp.requestedUrl, "https://pokeapi.co/api/v2/pokemon", "Expected requestedUrl to be https://pokeapi.co/api/v2/pokemon, but was \(clientHttp.requestedUrl ?? "")")
         }
@@ -42,7 +42,7 @@ class PokemonDatasourceTests: XCTestCase {
         let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
         clientHttp.responseError = ErrorClientHttp(statusCode: 400, message: "Error")
         do {
-            _ =  try await datasource.getPokemons(offset: nil, limit: nil);
+            _ =  try await datasource.getPokemons(offset: 0, limit: 15);
             XCTFail("Expected error thrown")
         }catch let error as ErrorClientHttp {
             XCTAssertEqual(error.message,  "Error")
@@ -57,7 +57,7 @@ class PokemonDatasourceTests: XCTestCase {
         let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
         clientHttp.responseError = GenericError()
         do {
-            _ = try await datasource.getPokemons(offset: nil, limit: nil);
+            _ = try await datasource.getPokemons(offset: 0, limit: 15);
             XCTFail("Expected error thrown")
         }catch {
             XCTAssertEqual(error is GenericError,  true)
@@ -68,7 +68,7 @@ class PokemonDatasourceTests: XCTestCase {
         let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
         clientHttp.responseError = nil
         clientHttp.responseData = responseOnePokemon
-        let data = try await datasource.getPokemons(offset: nil, limit: nil);
+        let data = try await datasource.getPokemons(offset: 0, limit: 15);
         XCTAssertEqual(data, [PokemonModel(name: "Bulbasaur")])
     }
     
@@ -82,7 +82,7 @@ class PokemonDatasourceTests: XCTestCase {
             ]
         }
         """.data(using: .utf8)
-        let data = try await datasource.getPokemons(offset: nil, limit: nil);
+        let data = try await datasource.getPokemons(offset: 0, limit: 15);
         XCTAssertEqual(data, [])
     }
     
@@ -90,7 +90,7 @@ class PokemonDatasourceTests: XCTestCase {
         let datasource: PokemonDatasource = PokemonDatasourceImpl(clientHttp: clientHttp)
         clientHttp.responseError = nil
         clientHttp.responseData = responseOnePokemon
-        _ = try await datasource.getPokemons(offset: nil, limit: nil)
+        _ = try await datasource.getPokemons(offset: 0, limit: 15)
         XCTAssertEqual(clientHttp.queryParams?["offset"] as? Int, 0)
         XCTAssertEqual(clientHttp.queryParams?["limit"] as? Int, 15)
         

@@ -41,6 +41,7 @@
 				Data/Datasource/PokemonDatasource.swift,
 				Data/Model/PokemonModel.swift,
 				Data/Model/PokemonsResponseModel.swift,
+				Data/Repositories/PokemonRepositoryImpl.swift,
 				Domain/Entities/PokemonEntity.swift,
 				Domain/Repositories/PokemonRepository.swift,
 				Domain/Usecases/FetchPokemonsUsecase.swift,

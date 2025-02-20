@@ -1,4 +1,4 @@
-struct PokemonEntity: Equatable {
+struct PokemonEntity: Equatable, Identifiable  {
     let id: Int
     let name: String
     

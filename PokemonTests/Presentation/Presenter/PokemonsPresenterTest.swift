@@ -3,7 +3,7 @@ import Testing
 import XCTest
 
 class PokemonsPresenterTest: XCTestCase {
-    var sut: PokemonsPresenter!
+    var sut: PokemonsPresenterImpl!
     var fetchPokemonsUsecase: FetchPokemonsUsecaseSpy!
     let pokemon = PokemonEntity(id: 1, name: "Bulbasaur")
     
@@ -20,9 +20,9 @@ class PokemonsPresenterTest: XCTestCase {
     }
     
     func testVariablePokemonsShouldBeFillWhenFetchUsecaseReturnSuccess() async throws {
-        XCTAssertEqual(sut.pokemons, nil)
         await sut.fetchPokemons(loadMore: false)
-        XCTAssertEqual(sut.pokemons, [])
+        XCTAssertTrue(sut.state is StateSuccess)
+        XCTAssertEqual((sut.state as? StateSuccess<[PokemonEntity]>)?.data, [])
     }
     
     func testWithOffsetAndLimitParamsInFirstCallFetchPokemon() async throws {
@@ -35,30 +35,44 @@ class PokemonsPresenterTest: XCTestCase {
       let pokemonsList = [pokemon]
         fetchPokemonsUsecase.mockedResponse = pokemonsList
       await sut.fetchPokemons(loadMore: false)
-        XCTAssertEqual(sut.pokemons, pokemonsList)
+        XCTAssertTrue(sut.state is StateSuccess)
+        XCTAssertEqual((sut.state as? StateSuccess<[PokemonEntity]>)?.data, pokemonsList)
     }
     
     func testLoadingVariableChangeWithCalledUsecase() async throws {
-        sut.isLoading = true
+        var verifyLoadingCount = 0
+        let cancellable = sut.$state.sink { newValue in
+            if(newValue is StateLoading){
+                verifyLoadingCount += 1
+            }
+        }
+        
         await sut.fetchPokemons(loadMore: false)
-        XCTAssertEqual(sut.isLoading, false)
+        
+        try await Task.sleep(nanoseconds: 2_000_000_000)
+        cancellable.cancel()
+      
+        XCTAssertEqual(verifyLoadingCount, 1)
+
+      
     }
     
     func testErrorFetchPokemonsWhenErrorIsGenericError() async throws {
-        XCTAssertEqual(sut.error, nil)
         fetchPokemonsUsecase.mockedError = GenericError()
         await sut.fetchPokemons(loadMore: false)
-        XCTAssertEqual(sut.error, "Unexpected error, try again")
+        XCTAssertTrue(sut.state is StateError)
+        XCTAssertEqual((sut.state as? StateError<[PokemonEntity]>)?.message, "Unexpected error, try again")
     }
     
     func testCalledFetchPokemonOnceAfterErrorAndErrorShouldBeNil() async throws {
         fetchPokemonsUsecase.mockedError = GenericError()
         await sut.fetchPokemons(loadMore: false)
-        XCTAssertEqual(sut.error, "Unexpected error, try again")
+        XCTAssertTrue(sut.state is StateError)
+        XCTAssertEqual((sut.state as? StateError<[PokemonEntity]>)?.message, "Unexpected error, try again")
         fetchPokemonsUsecase.mockedError = nil
         fetchPokemonsUsecase.mockedResponse = []
         await sut.fetchPokemons(loadMore: false)
-        XCTAssertEqual(sut.error, nil)
+        XCTAssertTrue(sut.state is StateSuccess)
     }
     
     func testShouldCallFetchPokemonForPagination() async throws {
@@ -66,10 +80,27 @@ class PokemonsPresenterTest: XCTestCase {
             pokemon
         ]
         fetchPokemonsUsecase.mockedError = nil
+        var verifyLoadingCount = 0
+        var verifyLoadingBottomCount = 0
+        let cancellable = sut.$state.sink { newValue in
+            if(newValue is StateLoading){
+                verifyLoadingCount += 1
+            }
+            if(newValue is StateSuccess){
+                let state = newValue as! StateSuccess<[PokemonEntity]>
+                if state.loadBottomScroll {
+                    verifyLoadingBottomCount += 1
+                }
+            }
+        }
         await sut.fetchPokemons(loadMore: false)
-        XCTAssertEqual(sut.isLoading, false)
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertEqual(verifyLoadingCount, 1)
         XCTAssertEqual(sut.pokemons, [pokemon])
         await sut.fetchPokemons(loadMore: true)
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertEqual(verifyLoadingBottomCount, 1)
+        cancellable.cancel()
         XCTAssertEqual(fetchPokemonsUsecase.offset, 1)
         XCTAssertEqual(fetchPokemonsUsecase.limit, 20)
         XCTAssertEqual(sut.pokemons, [pokemon, pokemon])
@@ -78,7 +109,8 @@ class PokemonsPresenterTest: XCTestCase {
     func testFetchpokemonsShouldNotDoAnyErrorWhenCalledWithLoadMore() async throws {
         fetchPokemonsUsecase.mockedError = GenericError()
         await sut.fetchPokemons(loadMore: true)
-        XCTAssertEqual(sut.error, nil)
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+        XCTAssertTrue(sut.state is StateSuccess)
 
     }
     

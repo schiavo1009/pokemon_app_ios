@@ -1,20 +1,42 @@
 import Foundation
-protocol PokemonsPresenter {
+import Combine
+import SwiftUI
+
+class StatePage<T>: ObservableObject {
+    
+}
+
+class StateSuccess<T>: StatePage<T> {
+    var data: T?
+    var loadBottomScroll: Bool
+    init(data: T?, loadBottomScroll: Bool = false) {
+        self.data = data
+        self.loadBottomScroll = loadBottomScroll
+    }
+}
+
+class StateError<T>: StatePage<T> {
+    var message: String?
+    init(message: String?) {
+        self.message = message
+    }
+}
+
+class StateLoading<T>: StatePage<T> {
+}
+
+protocol PokemonsPresenter: ObservableObject {
     func viewDidLoad()
     func fetchPokemons(loadMore: Bool) async
     var pokemons: [PokemonEntity]? {get set}
-    var isLoading: Bool {get set}
-    var isLoadingBottom: Bool {get set}
-    var error: String? {get set}
+    var state: StatePage<[PokemonEntity]> {get set}
 }
 
-class PokemonsPresenterImpl: PokemonsPresenter, ObservableObject {
+class PokemonsPresenterImpl: PokemonsPresenter {
     
     private var fetchPokemonsUsecase: FetchPokemonsUsecase
-    @Published var pokemons: [PokemonEntity]?
-    @Published var isLoading: Bool = false
-    @Published var isLoadingBottom: Bool = false
-    @Published var error: String?
+    var pokemons: [PokemonEntity]? = []
+    @Published var state: StatePage<[PokemonEntity]> = StatePage<[PokemonEntity]>()
     
     init(fetchPokemonsUsecase: FetchPokemonsUsecase) {
         self.fetchPokemonsUsecase = fetchPokemonsUsecase
@@ -27,38 +49,59 @@ class PokemonsPresenterImpl: PokemonsPresenter, ObservableObject {
     }
     
     func fetchPokemons(loadMore: Bool = false) async {
-        error = nil
+        await updateError(value: nil)
         
         if(loadMore){
-            isLoadingBottom = true
+            await self.updateIsLoadingBottom()
         } else{
-            isLoading = true
+           await self.updateToLoadingState()
         }
         
         let result = await fetchPokemonsUsecase.getPokemons(offset: pokemons?.count ?? 0, limit: 20)
-        
-        isLoadingBottom = false
-        isLoading = false
-        
+    
         switch result {
         case .success(let pokemons):
-            handlerSuccess(pokemons: pokemons, loadMore: loadMore)
+            await handlerSuccess(pokemons: pokemons, loadMore: loadMore)
         case .failure(let error):
             if !loadMore {
-                handleError(error: error)
+                await  handleError(error: error)
             }
         }
     }
     
-    func handlerSuccess(pokemons: [PokemonEntity], loadMore: Bool = false) {
+    func handlerSuccess(pokemons: [PokemonEntity], loadMore: Bool = false) async {
         if loadMore {
-            self.pokemons?.append(contentsOf: pokemons)
+            var pokemonsLocal = self.pokemons ?? []
+            pokemonsLocal.append(contentsOf: pokemons)
+            await self.updatePokemons(value: pokemonsLocal)
             return
         }
-        self.pokemons = pokemons
+        await self.updatePokemons(value: pokemons)
     }
     
-    func handleError(error: Error) {
-        self.error = "Unexpected error, try again"
+    @MainActor
+    private func updatePokemons(value: [PokemonEntity], loadMore: Bool = false) {
+        self.pokemons = value
+        self.state = StateSuccess(data: value)
+
+    }
+    
+    @MainActor
+    private func updateToLoadingState() {
+        self.state = StateLoading()
+    }
+    
+    @MainActor
+    private func updateIsLoadingBottom() {
+        self.state = StateSuccess(data: pokemons, loadBottomScroll: true)
+    }
+    
+    @MainActor
+    private func updateError(value: String?) {
+        self.state = StateError(message: value)
+    }
+    
+    func handleError(error: Error) async {
+       await updateError(value: "Unexpected error, try again")
     }
 }
